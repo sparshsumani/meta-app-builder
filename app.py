@@ -8,6 +8,7 @@ load_dotenv()
 
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import gradio as gr
@@ -118,7 +119,9 @@ async def submit(payload: SubmitPayload):
     t0 = time.time()
     _auth(payload)
 
-    repo_url, pages_url, commit_sha = _deploy_once(payload)
+    # This is the updated line:
+    repo_url, pages_url, commit_sha = await run_in_threadpool(_deploy_once, payload)
+
     elapsed_ms = int((time.time() - t0) * 1000)
 
     notify_body = {
