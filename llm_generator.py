@@ -124,7 +124,12 @@ def generate_app_files(brief: str, checks: List[str], attachments: List[str]) ->
     use_fallback = False
     html = js = css = ""
 
+    # --- Start of new debug code ---
+    print("--- Starting app file generation ---")
     if _client:
+        print("[debug] OpenAI client is configured. Attempting to generate HTML...")
+    # --- End of new debug code ---
+
         try:
             html = _client.chat.completions.create(
                 model=_model, temperature=0.2,
@@ -133,12 +138,18 @@ def generate_app_files(brief: str, checks: List[str], attachments: List[str]) ->
                     {"role": "user", "content": _index_html_prompt(brief, checks, attachments)},
                 ],
             ).choices[0].message.content.strip()
+            # --- Start of new debug code ---
+            print("[debug] Successfully generated HTML from OpenAI.")
+            # --- End of new debug code ---
         except Exception as e:
             # Log and fallback
             print(f"[llm] HTML gen failed: {e}")
             use_fallback = True
 
         if not use_fallback:
+            # --- Start of new debug code ---
+            print("[debug] Attempting to generate JavaScript...")
+            # --- End of new debug code ---
             try:
                 js = _client.chat.completions.create(
                     model=_model, temperature=0.2,
@@ -147,14 +158,23 @@ def generate_app_files(brief: str, checks: List[str], attachments: List[str]) ->
                         {"role": "user", "content": _script_js_prompt(brief, checks, attachments)},
                     ],
                 ).choices[0].message.content.strip()
+                # --- Start of new debug code ---
+                print("[debug] Successfully generated JavaScript from OpenAI.")
+                # --- End of new debug code ---
             except Exception as e:
                 print(f"[llm] JS gen failed: {e}")
                 use_fallback = True
 
     else:
+        # --- Start of new debug code ---
+        print("[debug] OpenAI client is NOT configured. Using fallback.")
+        # --- End of new debug code ---
         use_fallback = True
 
     if use_fallback:
+        # --- Start of new debug code ---
+        print("[debug] Generating fallback HTML and JS.")
+        # --- End of new debug code ---
         html = _fallback_index_html(brief, checks, attachments)
         js = _fallback_script_js()
 
@@ -175,6 +195,10 @@ def generate_app_files(brief: str, checks: List[str], attachments: List[str]) ->
     """)
 
     license_txt = MIT_LICENSE.format(year="2025")
+    
+    # --- Start of new debug code ---
+    print("--- Finished app file generation ---")
+    # --- End of new debug code ---
 
     return {
         "index.html": html,
